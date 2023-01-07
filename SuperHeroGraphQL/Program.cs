@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SuperHeroGraphQL.Data;
-using SuperHeroGraphQL.Interfaces;
-using SuperHeroGraphQL.Repositories;
-using HotChocolate.AspNetCore;
+using SuperHeroGraphQL.GraphQL;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -15,14 +13,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register custom services for the superheroes
-builder.Services.AddScoped<ISuperheroRepository, SuperheroRepository>();
-builder.Services.AddScoped<ISuperpowerRepository, SuperpowerRepository>();
-builder.Services.AddScoped<IMovieRepository, MovieRepository>();
-builder.Services.AddGraphQLServer().AddQueryType<Query>();
+builder.Services.AddGraphQLServer().AddQueryType<Query>().AddMutationType<Mutation>().AddProjections().AddFiltering().AddSorting();
 
 // Add Application Db Context options
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddPooledDbContextFactory<ApplicationDbContext>(options =>
 options.UseSqlServer(configuration.GetConnectionString("SqlServer")));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CORSPolicy", builder => builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((hosts) => true));
+});
 
 var app = builder.Build();
 
@@ -32,6 +31,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("CORSPolicy");
 
 app.UseHttpsRedirection();
 
@@ -40,6 +40,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapGraphQL();
-
 
 app.Run();

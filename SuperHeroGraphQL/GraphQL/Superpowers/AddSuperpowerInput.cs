@@ -1,11 +1,11 @@
-﻿namespace SuperHeroGraphQL.Models
+﻿
+
+namespace SuperHeroGraphQL.GraphQL.Superpowers
 {
-    public class Superpower
+    public class AddSuperpowerInput
     {
-        public int Id { get; set; }
         public string SuperPower { get; set; }
         public string Description { get; set; }
         public int SuperheroId { get; set; }
-        public Superhero Superhero { get; set; }
     }
 }
